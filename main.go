@@ -17,7 +17,7 @@ var Books = []Book{
 	{Id: "2", Name: "Meow"},
 }
 
-func RetriveBooks(c *gin.Context) {
+func RetrieveBooks(c *gin.Context) {
 	// for i := range Books {
 	// 	fmt.Println(i)
 	// }
@@ -26,7 +26,10 @@ func RetriveBooks(c *gin.Context) {
 
 func AddBook(c *gin.Context) {
 	var NewBook Book
-	c.BindJSON(&NewBook)
+	if err := c.BindJSON(&NewBook); err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Wrong format of data"})
+		return
+	}
 	Books = append(Books, NewBook)
 	c.IndentedJSON(http.StatusCreated, NewBook)
 }
@@ -108,7 +111,7 @@ func DeleteBook(c *gin.Context) {
 
 func main() {
 	r := gin.Default()
-	r.GET("/Books", RetriveBooks)
+	r.GET("/Books", RetrieveBooks)
 	r.POST("/Books", AddBook)
 	r.GET("/Books/:id", GetBook)
 	r.PATCH("/Books/:id", UpdateBook)
