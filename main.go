@@ -14,6 +14,7 @@ type Book struct {
 
 var Books = []Book{
 	{Id: "1", Name: "1984"},
+	{Id: "2", Name: "Meow"},
 }
 
 func RetriveBooks(c *gin.Context) {
@@ -53,11 +54,65 @@ func GetBookById(id string) (*Book, error) {
 	return nil, errors.New("to do not found")
 }
 
+func UpdateBook(c *gin.Context) {
+	id := c.Param("id")
+
+	var index int = -1
+
+	for i, t := range Books {
+		if t.Id == id {
+			index = i
+			break
+		}
+	}
+
+	if index == -1 {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "no book by given Id"})
+		return
+	}
+
+	var UpdatedBook Book
+	if err := c.BindJSON(&UpdatedBook); err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Wrong format of Book info"})
+		return
+	}
+
+	Books[index] = UpdatedBook
+
+	c.IndentedJSON(http.StatusOK, Books)
+
+}
+
+func DeleteBook(c *gin.Context) {
+	id := c.Param("id")
+
+	var index int = -1
+
+	for i, t := range Books {
+		if t.Id == id {
+			index = i
+			break
+		}
+	}
+
+	if index == -1 {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Wrong Id of book to delete"})
+		return
+	}
+
+	Books = append(Books[:index], Books[index+1:]...)
+
+	c.IndentedJSON(http.StatusOK, Books)
+
+}
+
 func main() {
 	r := gin.Default()
 	r.GET("/Books", RetriveBooks)
 	r.POST("/Books", AddBook)
 	r.GET("/Books/:id", GetBook)
+	r.PATCH("/Books/:id", UpdateBook)
+	r.DELETE("/Books/:id", DeleteBook)
 	r.Run("localhost:8080")
 
 }
